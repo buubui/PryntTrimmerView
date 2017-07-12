@@ -70,6 +70,8 @@ public protocol TrimmerViewDelegate: class {
     private var positionConstraint: NSLayoutConstraint?
 
     private let handleWidth: CGFloat = 15
+    private let borderWidth: CGFloat = 0
+    private let cornerRadius: CGFloat = 0
 
     /// The maximum duration allowed for the trimming. Change it before setting the asset, as the asset preview
     public var maxDuration: Double = 15 {
@@ -81,7 +83,19 @@ public protocol TrimmerViewDelegate: class {
     /// The minimum duration allowed for the trimming. The handles won't pan further if the minimum duration is attained.
     public var minDuration: Double = 3
 
-    //MARK: - View & constraints configurations
+    public var thumbnailTimestamps = [Double]() {
+        didSet {
+            assetPreview.thumbnailTimestamps = thumbnailTimestamps
+        }
+    }
+
+    public var customThumbnailSize: CGSize? {
+        didSet {
+            assetPreview.customThumbnailSize = customThumbnailSize
+        }
+    }
+
+    // MARK: - View & constraints configurations
 
     override func setupSubviews() {
 
@@ -106,8 +120,8 @@ public protocol TrimmerViewDelegate: class {
 
     private func setupTrimmerView() {
 
-        trimView.layer.borderWidth = 2.0
-        trimView.layer.cornerRadius = 2.0
+        trimView.layer.borderWidth = borderWidth
+        trimView.layer.cornerRadius = cornerRadius
         trimView.translatesAutoresizingMaskIntoConstraints = false
         trimView.isUserInteractionEnabled = false
         addSubview(trimView)
@@ -123,7 +137,7 @@ public protocol TrimmerViewDelegate: class {
     private func setupHandleView() {
 
         leftHandleView.isUserInteractionEnabled = true
-        leftHandleView.layer.cornerRadius = 2.0
+        leftHandleView.layer.cornerRadius = cornerRadius
         leftHandleView.translatesAutoresizingMaskIntoConstraints = false
         addSubview(leftHandleView)
 
@@ -141,7 +155,7 @@ public protocol TrimmerViewDelegate: class {
         leftHandleKnob.centerXAnchor.constraint(equalTo: leftHandleView.centerXAnchor).isActive = true
 
         rightHandleView.isUserInteractionEnabled = true
-        rightHandleView.layer.cornerRadius = 2.0
+        rightHandleView.layer.cornerRadius = cornerRadius
         rightHandleView.translatesAutoresizingMaskIntoConstraints = false
         addSubview(rightHandleView)
 
