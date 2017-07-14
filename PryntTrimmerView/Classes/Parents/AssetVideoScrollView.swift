@@ -58,9 +58,10 @@ class AssetVideoScrollView: UIScrollView {
             return
         }
 
+        generator?.cancelAllCGImageGeneration()
+        removeFormerThumbnails()
+
         if thumbnailTimestamps.count == 0 {
-            generator?.cancelAllCGImageGeneration()
-            removeFormerThumbnails()
             let newContentSize = setContentSize(for: asset)
             let visibleThumbnailsCount = Int(ceil(frame.width / thumbnailSize.width))
             let thumbnailCount = thumbnailSize.width > 0 ? Int(ceil(newContentSize.width / thumbnailSize.width)) : 0
