@@ -64,12 +64,12 @@ class VideoTrimmerViewController: AssetSelectionViewController {
         let layer: AVPlayerLayer = AVPlayerLayer(player: player)
         layer.backgroundColor = UIColor.white.cgColor
         layer.frame = CGRect(x: 0, y: 0, width: playerView.frame.width, height: playerView.frame.height)
-        layer.videoGravity = AVLayerVideoGravityResizeAspectFill
+        layer.videoGravity = AVLayerVideoGravity.resizeAspectFill
         playerView.layer.sublayers?.forEach({$0.removeFromSuperlayer()})
         playerView.layer.addSublayer(layer)
     }
 
-    func itemDidFinishPlaying(_ notification: Notification) {
+    @objc func itemDidFinishPlaying(_ notification: Notification) {
         if let startTime = trimmerView.startTime {
             player?.seek(to: startTime)
         }
@@ -89,7 +89,7 @@ class VideoTrimmerViewController: AssetSelectionViewController {
         playbackTimeCheckerTimer = nil
     }
 
-    func onPlaybackTimeChecker() {
+    @objc func onPlaybackTimeChecker() {
 
         guard let startTime = trimmerView.startTime, let endTime = trimmerView.endTime, let player = player else {
             return
@@ -99,7 +99,7 @@ class VideoTrimmerViewController: AssetSelectionViewController {
         trimmerView.seek(to: playBackTime)
 
         if playBackTime >= endTime {
-            player.seek(to: startTime, toleranceBefore: kCMTimeZero, toleranceAfter: kCMTimeZero)
+            player.seek(to: startTime, toleranceBefore: CMTime.zero, toleranceAfter: CMTime.zero)
             trimmerView.seek(to: startTime)
         }
     }
@@ -107,7 +107,7 @@ class VideoTrimmerViewController: AssetSelectionViewController {
 
 extension VideoTrimmerViewController: TrimmerViewDelegate {
     func positionBarStoppedMoving(_ playerTime: CMTime) {
-        player?.seek(to: playerTime, toleranceBefore: kCMTimeZero, toleranceAfter: kCMTimeZero)
+        player?.seek(to: playerTime, toleranceBefore: CMTime.zero, toleranceAfter: CMTime.zero)
         player?.play()
         startPlaybackTimeChecker()
     }
@@ -115,7 +115,7 @@ extension VideoTrimmerViewController: TrimmerViewDelegate {
     func didChangePositionBar(_ playerTime: CMTime) {
         stopPlaybackTimeChecker()
         player?.pause()
-        player?.seek(to: playerTime, toleranceBefore: kCMTimeZero, toleranceAfter: kCMTimeZero)
+        player?.seek(to: playerTime, toleranceBefore: CMTime.zero, toleranceAfter: CMTime.zero)
         let duration = (trimmerView.endTime! - trimmerView.startTime!).seconds
         print(duration)
     }

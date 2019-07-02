@@ -45,10 +45,10 @@ class VideoCropperViewController: AssetSelectionViewController {
 
         if let selectedTime = selectThumbView.selectedTime, let asset = videoCropView.asset {
             let generator = AVAssetImageGenerator(asset: asset)
-            generator.requestedTimeToleranceBefore = kCMTimeZero
-            generator.requestedTimeToleranceAfter = kCMTimeZero
+            generator.requestedTimeToleranceBefore = CMTime.zero
+            generator.requestedTimeToleranceAfter = CMTime.zero
             generator.appliesPreferredTrackTransform = true
-            var actualTime = kCMTimeZero
+            var actualTime = CMTime.zero
             let image = try? generator.copyCGImage(at: selectedTime, actualTime: &actualTime)
             if let image = image {
 
@@ -63,27 +63,30 @@ class VideoCropperViewController: AssetSelectionViewController {
 
     func prepareAssetComposition() throws {
 
-        guard let asset = videoCropView.asset, let videoTrack = asset.tracks(withMediaType: AVMediaTypeVideo).first else {
+        guard let asset = videoCropView.asset, let videoTrack = asset.tracks(withMediaType: AVMediaType.video).first else {
             return
         }
 
         let assetComposition = AVMutableComposition()
         let frame1Time = CMTime(seconds: 0.2, preferredTimescale: asset.duration.timescale)
-        let trackTimeRange = CMTimeRangeMake(kCMTimeZero, frame1Time)
+        let trackTimeRange = CMTimeRangeMake(start: .zero, duration: frame1Time)
 
-        let videoCompositionTrack = assetComposition.addMutableTrack(withMediaType: AVMediaTypeVideo,
-                                                                      preferredTrackID: kCMPersistentTrackID_Invalid)
-        try videoCompositionTrack.insertTimeRange(trackTimeRange, of: videoTrack, at: kCMTimeZero)
+        guard let videoCompositionTrack = assetComposition.addMutableTrack(withMediaType: .video,
+                                                                           preferredTrackID: kCMPersistentTrackID_Invalid) else {
+            return
+        }
 
-        if let audioTrack = asset.tracks(withMediaType: AVMediaTypeAudio).first {
-            let audioCompositionTrack = assetComposition.addMutableTrack(withMediaType: AVMediaTypeAudio,
+        try videoCompositionTrack.insertTimeRange(trackTimeRange, of: videoTrack, at: CMTime.zero)
+
+        if let audioTrack = asset.tracks(withMediaType: AVMediaType.audio).first {
+            let audioCompositionTrack = assetComposition.addMutableTrack(withMediaType: AVMediaType.audio,
                                                                       preferredTrackID: kCMPersistentTrackID_Invalid)
-            try audioCompositionTrack.insertTimeRange(trackTimeRange, of: audioTrack, at: kCMTimeZero)
+            try audioCompositionTrack?.insertTimeRange(trackTimeRange, of: audioTrack, at: CMTime.zero)
         }
 
         //1. Create the instructions
         let mainInstructions = AVMutableVideoCompositionInstruction()
-        mainInstructions.timeRange = CMTimeRangeMake(kCMTimeZero, asset.duration)
+        mainInstructions.timeRange = CMTimeRangeMake(start: .zero, duration: asset.duration)
 
         //2 add the layer instructions
         let layerInstructions = AVMutableVideoCompositionLayerInstruction(assetTrack: videoCompositionTrack)
@@ -92,8 +95,8 @@ class VideoCropperViewController: AssetSelectionViewController {
                                 height: 16 * videoCropView.aspectRatio.height * 18)
         let transform = getTransform(for: videoTrack)
 
-        layerInstructions.setTransform(transform, at: kCMTimeZero)
-        layerInstructions.setOpacity(1.0, at: kCMTimeZero)
+        layerInstructions.setTransform(transform, at: CMTime.zero)
+        layerInstructions.setOpacity(1.0, at: CMTime.zero)
         mainInstructions.layerInstructions = [layerInstructions]
 
         //3 Create the main composition and add the instructions
@@ -101,13 +104,13 @@ class VideoCropperViewController: AssetSelectionViewController {
         let videoComposition = AVMutableVideoComposition()
         videoComposition.renderSize = renderSize
         videoComposition.instructions = [mainInstructions]
-        videoComposition.frameDuration = CMTimeMake(1, 30)
+        videoComposition.frameDuration = CMTimeMake(value: 1, timescale: 30)
 
         let url = URL(fileURLWithPath: "\(NSTemporaryDirectory())TrimmedMovie.mp4")
         try? FileManager.default.removeItem(at: url)
 
         let exportSession = AVAssetExportSession(asset: assetComposition, presetName: AVAssetExportPresetHighestQuality)
-        exportSession?.outputFileType = AVFileTypeMPEG4
+        exportSession?.outputFileType = AVFileType.mp4
         exportSession?.shouldOptimizeForNetworkUse = true
         exportSession?.videoComposition = videoComposition
         exportSession?.outputURL = url
@@ -162,7 +165,7 @@ class VideoCropperViewController: AssetSelectionViewController {
 extension VideoCropperViewController: ThumbSelectorViewDelegate {
 
     func didChangeThumbPosition(_ imageTime: CMTime) {
-        videoCropView.player?.seek(to: imageTime, toleranceBefore: kCMTimeZero, toleranceAfter: kCMTimeZero)
+        videoCropView.player?.seek(to: imageTime, toleranceBefore: CMTime.zero, toleranceAfter: CMTime.zero)
     }
 }
 

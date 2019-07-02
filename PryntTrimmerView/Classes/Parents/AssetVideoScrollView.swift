@@ -54,7 +54,8 @@ class AssetVideoScrollView: UIScrollView {
     }
 
     internal func regenerateThumbnails(for asset: AVAsset) {
-        guard let thumbnailSize = customThumbnailSize ?? getThumbnailFrameSize(from: asset) else {
+        guard let thumbnailSize = getThumbnailFrameSize(from: asset), thumbnailSize.width != 0 else {
+            print("Could not calculate the thumbnail size.")
             return
         }
 
@@ -77,14 +78,14 @@ class AssetVideoScrollView: UIScrollView {
     }
 
     private func getThumbnailFrameSize(from asset: AVAsset) -> CGSize? {
-        guard let track = asset.tracks(withMediaType: AVMediaTypeVideo).first else { return nil}
+        guard let track = asset.tracks(withMediaType: AVMediaType.video).first else { return nil}
 
         let assetSize = track.naturalSize.applying(track.preferredTransform)
 
         let height = frame.height
         let ratio = assetSize.width / assetSize.height
         let width = height * ratio
-        return CGSize(width: fabs(width), height: fabs(height))
+        return CGSize(width: abs(width), height: abs(height))
     }
 
     private func removeFormerThumbnails() {
@@ -154,7 +155,7 @@ class AssetVideoScrollView: UIScrollView {
         var count = 0
 
         let handler: AVAssetImageGeneratorCompletionHandler = { [weak self] (_, cgimage, _, result, error) in
-            if let cgimage = cgimage, error == nil && result == AVAssetImageGeneratorResult.succeeded {
+            if let cgimage = cgimage, error == nil && result == AVAssetImageGenerator.Result.succeeded {
                 DispatchQueue.main.async(execute: { [weak self] () -> Void in
 
                     if count == 0 {
@@ -177,7 +178,7 @@ class AssetVideoScrollView: UIScrollView {
 
     private func displayImage(_ cgImage: CGImage, at index: Int) {
         if let imageView = contentView.viewWithTag(index) as? UIImageView {
-            let uiimage = UIImage(cgImage: cgImage, scale: 1.0, orientation: UIImageOrientation.up)
+            let uiimage = UIImage(cgImage: cgImage, scale: 1.0, orientation: UIImage.Orientation.up)
             imageView.image = uiimage
         }
     }
